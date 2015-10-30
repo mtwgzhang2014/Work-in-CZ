@@ -5,3 +5,5 @@ Git has a mutable index called stage.
 Git tracks changes of files.
 
 we are in the GitHub!!!
+
+Creating a new branch is quick & simple.
