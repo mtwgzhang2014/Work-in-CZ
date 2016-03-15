@@ -10,44 +10,21 @@ __author__ = 'Mason Zhang'
 #  3. 记录第一行的初始角差值 
 #  4. 最终计算出每个XML文件中对各角的最终进刀量
 
-from xml.parsers.expat import ParserCreate
+import re
 
 filePath = r'C:\Users\zhang-384\Desktop\7284080391-6-20150320121642-MeasData.xml'
-
-class DefaultSaxHandler(object):
-
-	elementName = ''
-	dataContent = ''
-
-	def start_element(self, name, attrs):
-		elementName = name
-        #print('sax:start_element: %s, attrs: %s' % (name, str(attrs)))
-
-	def end_element(self, name):
-		pass 
-        # print('sax:end_element: %s' % name)
-
-	def char_data(self, text):
-		if self.elementName == 'DATA':
-			self.dataContent = text
-			print(text)
-        # print('sax:char_data: %s' % text)
-
-# 当SAX解析器读到一个节点时，会产生3个事件：
-# start_element, char_data, end_element
-
-handler = DefaultSaxHandler()
-parser = ParserCreate()
-
-# 注册事件处理程序
-parser.StartElementHandler = handler.start_element
-parser.EndElementHandler = handler.end_element
-parser.CharacterDataHandler = handler.char_data
-# parser.Parse(xml)
+# 获取纯角差数据
+pattern = re.compile("Hone_Depth2(.*?)EndTime:", re.S)
 
 with open(filePath, 'r') as xmlfile:
 	xmltmp = xmlfile.read()
-	parser.Parse(xmltmp)
-	print(handler.dataContent)
+	# re.search 扫描整个字符串并返回第一个成功的匹配
+	# 而re.match 尝试从字符串的起始位置匹配一个模式，
+	# 如果不是起始位置匹配成功的话，match()就返回none
+	data = re.search(pattern, xmltmp, flags = 0)
+	if data != None:
+		print(data.group(1))
+	else:
+		print(data)
 
 
