@@ -10,8 +10,11 @@ import os
 import os.path
 import shutil
 
-sourceDir = r'H:\xml backup'
-targetDir = r'H:\selectXml'
+# sourceDir = r'H:\xml backup'
+# targetDir = r'H:\selectXml'
+
+sourceDir = r'C:\Users\zhang-384\Desktop\My Works\ProjectData\AutoHoning4SteelLC\xml backup'
+targetDir = r'C:\Users\zhang-384\Desktop\My Works\ProjectData\AutoHoning4SteelLC\selectXml'
 
 
 def selectFile(sourceDir, targetDir, searchKey):
