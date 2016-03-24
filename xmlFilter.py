@@ -18,6 +18,7 @@ import re
 def obtainKeyData(filePath):
 	# 关键数据 L_error, T_error, up_pos, other_pos, right_pos, left_pos
 	keyData = [0]*6
+	style12Flag = False
 	# 获取纯角差数据
 	pattern16 = re.compile("X4(.*?)EndTime:", re.S)
 	pattern12= re.compile("Hone_Depth2(.*?)EndTime:", re.S) 
@@ -32,15 +33,12 @@ def obtainKeyData(filePath):
 		tmpData = re.search(pattern16, tmpXml)
 		if tmpData == None:
 			tmpData = re.search(pattern12, tmpXml)
-		# if tmpData != None:
-		# 	print(tmpData.group(1))
-		# else:
-		# 	print(tmpData)
+			style12Flag = True
 
 	if tmpData!=None:
 		dataList = tmpData.group(1).split()
 		g = iter(dataList)
-		if len(dataList) % 12 == 0 and float(dataList[15]) > 1:
+		if len(dataList) % 12 == 0 and float(dataList[15]) > 1 and style12Flag:
 			rowNum = int(len(dataList)/12)
 			# 下面是两种将一维List转变为二维List的语句
 			# 1. 采用迭代器结果逐个赋值到二维List中，[[0 for..] for..]二维数组
@@ -48,41 +46,45 @@ def obtainKeyData(filePath):
 			dataArray = [[next(g) for _ in range(12)] for _ in range(rowNum)]
 			# * unpack the arguments out of a list or tuple
 			#dataArray = list(zip(*[iter(dataList)]*12))
-		elif len(dataList) % 16 == 0 and float(dataList[15]) < 1:
+		elif len(dataList) % 16 == 0 and float(dataList[15]) < 1 and (not style12Flag):
 			rowNum = int(len(dataList)/16)
 			dataArray = [[next(g) for _ in range(16)] for _ in range(rowNum)]
 		else:
 			return 'Bad data!'
-		# 如何处理即可以被12整除又可以被16整除的情况
-
-		# dataArray[i][j] for i is row and j is column
-		# print(dataArray)
-		#print('L_error = %s, T_error = %s' % (dataArray[0][4], dataArray[0][5]))
 		# L_error
 		keyData[0] = int(dataArray[0][4])
 		# T_error
 		keyData[1] = int(dataArray[0][5])
-		for i in range(len(dataArray)):
-			if dataArray[i][6] == '0':
-				keyData[2] += int(dataArray[i][8])
-			elif dataArray[i][6] == '1':
-				keyData[3] += int(dataArray[i][8])
-			elif dataArray[i][6] == '2':
-				keyData[4] += int(dataArray[i][8])
-			elif dataArray[i][6] == '3':
-				keyData[5] += int(dataArray[i][8])
-			else:
-				raise ValueError('The original xml has some mistake!')
-			if dataArray[i][9] == '0':
-				keyData[2] += int(dataArray[i][11])
-			elif dataArray[i][9] == '1':
-				keyData[3] += int(dataArray[i][11])
-			elif dataArray[i][9] == '2':
-				keyData[4] += int(dataArray[i][11])
-			elif dataArray[i][9] == '3':
-				keyData[5] += int(dataArray[i][11])
-			else:
-				raise ValueError('The original xml has some mistake!')
+
+		if style12Flag:
+			for i in range(len(dataArray)):
+				if dataArray[i][6] == '0':
+					keyData[2] += int(dataArray[i][8])
+				elif dataArray[i][6] == '1':
+					keyData[3] += int(dataArray[i][8])
+				elif dataArray[i][6] == '2':
+					keyData[4] += int(dataArray[i][8])
+				elif dataArray[i][6] == '3':
+					keyData[5] += int(dataArray[i][8])
+				else:
+					raise ValueError('E01: The original xml has some mistake!')
+				if dataArray[i][9] == '0':
+					keyData[2] += int(dataArray[i][11])
+				elif dataArray[i][9] == '1':
+					keyData[3] += int(dataArray[i][11])
+				elif dataArray[i][9] == '2':
+					keyData[4] += int(dataArray[i][11])
+				elif dataArray[i][9] == '3':
+					keyData[5] += int(dataArray[i][11])
+				else:
+					raise ValueError('E02: The original xml has some mistake!')
+				return 'Bad data!'
+		else:
+			#lastRow = len(dataArray) - 1
+			keyData[2] = round(float(dataArray[-1][-4]) / 0.000125) # C0 for up -- X1
+			keyData[3] = round(float(dataArray[-1][-2]) / 0.000125) # C1 for other -- X3
+			keyData[4] = round(float(dataArray[-1][-3]) / 0.000125) # C2 for right -- X2
+			keyData[5] = round(float(dataArray[-1][-1]) / 0.000125) # C3 for left -- X4
 		#print(keyData)
 		return keyData
 
