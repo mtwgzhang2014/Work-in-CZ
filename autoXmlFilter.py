@@ -14,7 +14,7 @@ targetDir = r'C:\Users\zhang-384\Desktop\My Works\00 OST\2015\2. 钢自动角差
 
 for parent, dirs, filenames in os.walk(targetDir):
 		for file in filenames:
-			print(file)
+			#print(file)
 			targetFile = os.path.join(targetDir, file)
 			alist = obtainKeyData(targetFile)
 			if alist != 'Bad data!':
