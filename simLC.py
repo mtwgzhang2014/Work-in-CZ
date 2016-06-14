@@ -38,7 +38,27 @@ class simLC:
 	def TranError(self):
 	    return np.round((self.Right - self.Left)/self.Right*1e6)
 
+	@property
+	def honeStepRecord(self):
+		tmpSize = self._honeStepRecord.size
+		if  tmpSize % 2 == 0:
+			tmpHoneStep = np.zeros([tmpSize/2,4])
+			#print(tmpHoneStep)
+			for i in range(int(tmpSize/2)):
+				for j in range(2):
+					tmpHoneStep[i][self._honePosRecord[i*2+j]] = self._honeStepRecord[i*2+j]
+		else:
+			tmpHoneStep = np.zeros([int(tmpSize/2)+1,4])
+			#print(tmpHoneStep)
+			for i in range(int(tmpSize/2)):
+				for j in range(2):
+					tmpHoneStep[i][self._honePosRecord[i*2+j]] = self._honeStepRecord[i*2+j]
+			tmpHoneStep[-1][self._honePosRecord[-1]] = self._honeStepRecord[-1]
+		return tmpHoneStep
+	
+
 	def _calcHoneAdj(self,honeStep,honePos):
+		#np.seterr(all = 'warn')
 		if honePos == 0: # POS Up
 			self.cornerTheta[0,:] = np.array([2.0572e-7, 	0.001046,	0,	80])	# Up corner parameter			
 			self.cornerTheta[2,:] = np.array([1.4275e-7,	0.0007437,	0,	54])	# Right corner parameter
@@ -58,7 +78,9 @@ class simLC:
 		else:
 			raise ValueError("honePos value %d invalid!", honePos)
 
+		honeStep = np.int64(honeStep)
 		stepVector = np.array([pow(honeStep,3),pow(honeStep,2),honeStep,1])	
+		#print(type(stepVector[0]))
 		adjRight = np.round(np.dot(stepVector,self.cornerTheta[2,:].transpose())+self.Noise[2])
 		adjLeft = np.round(np.dot(stepVector,self.cornerTheta[3,:])+self.Noise[3])
 		adjUp = np.round(np.dot(stepVector,self.cornerTheta[0,:])+self.Noise[0])
@@ -70,9 +92,9 @@ class simLC:
 		self._tmpRecord.append(adjLeft)
 		self.adjRecord = np.frombuffer(self._tmpRecord, dtype=np.int).reshape(-1,4)
 		#print(self.adjRecord)
-		self._tmpStepRecord.append(honeStep)
+		self._tmpStepRecord.append(honeStep) # must be int
 		self._honeStepRecord = np.frombuffer(self._tmpStepRecord,dtype=np.int)
-		self._tmpPosRecord.append(honePos)
+		self._tmpPosRecord.append(honePos) # must be int
 		self._honePosRecord = np.frombuffer(self._tmpPosRecord,dtype=np.int)
 		return np.array([adjUp, adjOther, adjRight, adjLeft])
 
@@ -109,6 +131,7 @@ if __name__ == "__main__":
 
 	testLC.loadCellOutput(190,0)
 	print(testLC.adjRecord)
+	print(testLC.honeStepRecord)
 	print("The Long error is %d and the Tran error is %d " % (testLC.LongError,testLC.TranError))
 
 
